@@ -1,40 +1,69 @@
-# SPDX-FileCopyrightText: © 2024 Tiny Tapeout
-# SPDX-License-Identifier: Apache-2.0
-
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
+from cocotb.triggers import ClockCycles, RisingEdge, FallingEdge, ReadOnly
 
 
 @cocotb.test()
 async def test_project(dut):
-    dut._log.info("Start")
 
-    # Set the clock period to 10 us (100 KHz)
     clock = Clock(dut.clk, 10, unit="us")
     cocotb.start_soon(clock.start())
 
+    # -------------------
     # Reset
-    dut._log.info("Reset")
-    dut.ena.value = 1
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
+    # -------------------
+    dut.ena.value = 0
+    dut.load_ena.value = 0
+    dut.load.value = 0
     dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
+
+    await ClockCycles(dut.clk, 2)
+
+    # Release reset away from rising edge
+    await FallingEdge(dut.clk)
     dut.rst_n.value = 1
+    dut.ena.value = 1
 
-    dut._log.info("Test project behavior")
+    # -------------------
+    # Count
+    # -------------------
+    for expected in range(1, 4):
+        await RisingEdge(dut.clk)
+        await ReadOnly()
 
-    # Set the input values you want to test
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
+        assert dut.cnt_out.value == expected, \
+            f"Expected {expected}, got {dut.cnt_out.value}"
 
-    # Wait for one clock cycle to see the output values
-    await ClockCycles(dut.clk, 1)
+    # -------------------
+    # Load 67
+    # -------------------
 
-    # The following assersion is just an example of how to check the output values.
-    # Change it to match the actual expected output of your module:
-    assert dut.uo_out.value == 50
+    # Change inputs safely BETWEEN rising edges
+    await FallingEdge(dut.clk)
 
-    # Keep testing the module by changing the input values, waiting for
-    # one or more clock cycles, and asserting the expected output values.
+    dut.load_ena.value = 1
+    dut.load.value = 67
+
+    # This rising edge performs:
+    # internal_count <= load
+    await RisingEdge(dut.clk)
+
+    # Wait until Verilog finishes updating registers
+    await ReadOnly()
+
+    assert dut.cnt_out.value == 67, \
+        f"Expected 67, got {dut.cnt_out.value}"
+
+    # -------------------
+    # Resume counting
+    # -------------------
+    await FallingEdge(dut.clk)
+    dut.load_ena.value = 0
+
+    await RisingEdge(dut.clk)
+    await ReadOnly()
+
+    assert dut.cnt_out.value == 68, \
+        f"Expected 68, got {dut.cnt_out.value}"
+
+    dut._log.info("TEST PASSED")
