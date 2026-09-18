@@ -24,22 +24,22 @@ project:
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
 pinout:
   # Inputs
-  ui[0]: ""
-  ui[1]: ""
-  ui[2]: ""
-  ui[3]: ""
-  ui[4]: ""
-  ui[5]: ""
-  ui[6]: ""
+  ui[0]: "s"
+  ui[1]: "h"
+  ui[2]: "o"
+  ui[3]: "t"
+  ui[4]: "g"
+  ui[5]: "u"
+  ui[6]: "n"
   ui[7]: ""
 
   # Outputs
-  uo[0]: ""
-  uo[1]: ""
-  uo[2]: ""
-  uo[3]: ""
-  uo[4]: ""
-  uo[5]: ""
+  uo[0]: "s"
+  uo[1]: "h"
+  uo[2]: "o"
+  uo[3]: "o"
+  uo[4]: "t"
+  uo[5]: "github"
   uo[6]: ""
   uo[7]: ""
 
