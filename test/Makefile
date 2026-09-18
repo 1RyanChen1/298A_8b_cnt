@@ -4,15 +4,17 @@ SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 
 SRC_DIR := $(PWD)/../src
-PROJECT_SOURCES := sync_8b_cnt.v
+PROJECT_SOURCES := project.v sync_8b_cnt.v
 
 ifneq ($(GATES),yes)
 
+# RTL simulation
 SIM_BUILD := sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
 
 else
 
+# Gate-level simulation
 SIM_BUILD := sim_build/gl
 
 COMPILE_ARGS += -DGL_TEST
@@ -28,12 +30,19 @@ VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 
 endif
 
+# Include path
 COMPILE_ARGS += -I$(SRC_DIR)
 
-TOPLEVEL := sync_8b_cnt
+# Verilog testbench wrapper
+VERILOG_SOURCES += $(PWD)/tb.v
+
+# Simulation top
+TOPLEVEL := tb
+
+# Cocotb file: test/test.py
 COCOTB_TEST_MODULES := test
 
-# Enable waveform generation
+# Waveforms
 WAVES := 1
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
